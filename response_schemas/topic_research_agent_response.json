@@ -1,0 +1,36 @@
+{
+  "agent_name": "Topic Research Agent",
+  "agent_id": "699810b41c7942f1496c5794",
+  "description": "Researches trending topics, keywords, and content angles relevant to the user's industry and audience using real-time web data",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "topics": [
+      {
+        "title": "string",
+        "description": "string",
+        "relevance_score": "number",
+        "keywords": [
+          "string"
+        ],
+        "content_angle": "string"
+      }
+    ],
+    "industry_summary": "string"
+  },
+  "example_response": {
+    "topics": [
+      {
+        "title": "sample string",
+        "description": "sample string",
+        "relevance_score": 0,
+        "keywords": [
+          "sample string"
+        ],
+        "content_angle": "sample string"
+      }
+    ],
+    "industry_summary": "sample string"
+  }
+}

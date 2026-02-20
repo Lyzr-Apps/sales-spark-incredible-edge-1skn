@@ -1,0 +1,38 @@
+{
+  "agent_name": "Ad Copy Generator Agent",
+  "agent_id": "699810b4d3087087d129a27c",
+  "description": "Generates SEO-optimized ad copy tailored to specified platform, tone, audience segment, and CTA. Produces multiple variations for A/B testing.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "variations": [
+      {
+        "id": "number",
+        "copy_text": "string",
+        "approach": "string",
+        "seo_keywords": [
+          "string"
+        ],
+        "character_count": "number",
+        "platform_optimized": "string"
+      }
+    ],
+    "campaign_summary": "string"
+  },
+  "example_response": {
+    "variations": [
+      {
+        "id": 0,
+        "copy_text": "sample string",
+        "approach": "sample string",
+        "seo_keywords": [
+          "sample string"
+        ],
+        "character_count": 0,
+        "platform_optimized": "sample string"
+      }
+    ],
+    "campaign_summary": "sample string"
+  }
+}

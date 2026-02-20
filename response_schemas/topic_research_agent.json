@@ -1,0 +1,40 @@
+{
+  "agent_name": "Topic Research Agent",
+  "agent_id": "699810b41c7942f1496c5794",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "schema": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "TopicResearchResponse",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": { "type": "string" },
+                "description": { "type": "string" },
+                "relevance_score": { "type": "number" },
+                "keywords": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "content_angle": { "type": "string" }
+              },
+              "required": ["title", "description", "relevance_score", "keywords", "content_angle"],
+              "additionalProperties": false
+            }
+          },
+          "industry_summary": { "type": "string" }
+        },
+        "required": ["topics", "industry_summary"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

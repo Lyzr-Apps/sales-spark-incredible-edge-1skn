@@ -1,0 +1,23 @@
+{
+  "agents": {
+    "topic_research_agent": {
+      "agent_id": "699810b41c7942f1496c5794",
+      "name": "Topic Research Agent",
+      "provider": "perplexity",
+      "model": "sonar-pro"
+    },
+    "ad_copy_agent": {
+      "agent_id": "699810b4d3087087d129a27c",
+      "name": "Ad Copy Generator Agent",
+      "provider": "openai",
+      "model": "gpt-4.1"
+    },
+    "twitter_publisher_agent": {
+      "agent_id": "699810c2d3087087d129a282",
+      "name": "Twitter Publisher Agent",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "tools": ["TWITTER_CREATION_OF_A_POST"]
+    }
+  }
+}

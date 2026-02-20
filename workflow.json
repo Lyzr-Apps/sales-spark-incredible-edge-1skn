@@ -1,0 +1,42 @@
+{
+  "nodes": [
+    {
+      "id": "input_node",
+      "type": "Input",
+      "label": "User Input",
+      "nodeCategory": "input"
+    },
+    {
+      "id": "topic_research_agent",
+      "type": "Agent",
+      "label": "Topic Research Agent",
+      "nodeCategory": "agent"
+    },
+    {
+      "id": "ad_copy_agent",
+      "type": "Agent",
+      "label": "Ad Copy Generator Agent",
+      "nodeCategory": "agent"
+    },
+    {
+      "id": "twitter_publisher_agent",
+      "type": "Agent",
+      "label": "Twitter Publisher Agent",
+      "nodeCategory": "agent"
+    }
+  ],
+  "edges": [
+    {
+      "source": "input_node",
+      "target": "topic_research_agent"
+    },
+    {
+      "source": "topic_research_agent",
+      "target": "ad_copy_agent"
+    },
+    {
+      "source": "ad_copy_agent",
+      "target": "twitter_publisher_agent"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "agent_name": "Ad Copy Generator Agent",
+  "agent_id": "699810b4d3087087d129a27c",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "schema": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "AdCopyResponse",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "variations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "number" },
+                "copy_text": { "type": "string" },
+                "approach": { "type": "string" },
+                "seo_keywords": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "character_count": { "type": "number" },
+                "platform_optimized": { "type": "string" }
+              },
+              "required": ["id", "copy_text", "approach", "seo_keywords", "character_count", "platform_optimized"],
+              "additionalProperties": false
+            }
+          },
+          "campaign_summary": { "type": "string" }
+        },
+        "required": ["variations", "campaign_summary"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

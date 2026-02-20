@@ -1,0 +1,22 @@
+{
+  "agent_name": "Twitter Publisher Agent",
+  "agent_id": "699810c2d3087087d129a282",
+  "description": "Posts approved ad copy directly to user's Twitter account.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "status": "string",
+    "message": "string",
+    "tweet_id": "string",
+    "tweet_url": "string",
+    "published_text": "string"
+  },
+  "example_response": {
+    "status": "sample string",
+    "message": "sample string",
+    "tweet_id": "sample string",
+    "tweet_url": "sample string",
+    "published_text": "sample string"
+  }
+}
