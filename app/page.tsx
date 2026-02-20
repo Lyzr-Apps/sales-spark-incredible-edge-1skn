@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { callAIAgent } from '@/lib/aiAgent'
 import parseLLMJson from '@/lib/jsonParser'
-import { FiSearch, FiCalendar, FiSend, FiEdit2, FiCheck, FiClock, FiTrendingUp, FiX, FiChevronLeft, FiChevronRight, FiBarChart2, FiTarget, FiStar, FiHash, FiAlertCircle, FiActivity, FiFileText, FiTwitter, FiRefreshCw, FiCopy, FiTrash2, FiExternalLink, FiPlus, FiAward, FiZap } from 'react-icons/fi'
+import { FiSearch, FiCalendar, FiSend, FiEdit2, FiCheck, FiClock, FiTrendingUp, FiX, FiChevronLeft, FiChevronRight, FiBarChart2, FiTarget, FiStar, FiHash, FiAlertCircle, FiActivity, FiFileText, FiTwitter, FiRefreshCw, FiCopy, FiTrash2, FiExternalLink, FiPlus, FiAward, FiZap, FiFacebook, FiInstagram, FiVideo } from 'react-icons/fi'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -21,6 +21,18 @@ import { Separator } from '@/components/ui/separator'
 const TOPIC_RESEARCH_AGENT_ID = '699810b41c7942f1496c5794'
 const AD_COPY_AGENT_ID = '699810b4d3087087d129a27c'
 const TWITTER_PUBLISHER_AGENT_ID = '699810c2d3087087d129a282'
+const FACEBOOK_PUBLISHER_AGENT_ID = '6998142a549d879ea245fe1b'
+const INSTAGRAM_PUBLISHER_AGENT_ID = '6998142be759fc2f0f4fe552'
+const TIKTOK_PUBLISHER_AGENT_ID = '6998142c5c2b072508969246'
+
+// ─── Platform Config ─────────────────────────────────────────────────────────
+const PLATFORM_CONFIG: Record<string, { agentId: string; icon: React.ReactNode; label: string; color: string }> = {
+  Twitter: { agentId: TWITTER_PUBLISHER_AGENT_ID, icon: <FiTwitter className="w-3.5 h-3.5" />, label: 'Twitter / X', color: 'bg-sky-100 text-sky-700 border-sky-200' },
+  Facebook: { agentId: FACEBOOK_PUBLISHER_AGENT_ID, icon: <FiFacebook className="w-3.5 h-3.5" />, label: 'Facebook', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  Instagram: { agentId: INSTAGRAM_PUBLISHER_AGENT_ID, icon: <FiInstagram className="w-3.5 h-3.5" />, label: 'Instagram', color: 'bg-pink-100 text-pink-700 border-pink-200' },
+  TikTok: { agentId: TIKTOK_PUBLISHER_AGENT_ID, icon: <FiVideo className="w-3.5 h-3.5" />, label: 'TikTok', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+  LinkedIn: { agentId: '', icon: <FiExternalLink className="w-3.5 h-3.5" />, label: 'LinkedIn', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
+}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface TopicItem {
@@ -51,7 +63,8 @@ interface ApprovedCopy {
   status: 'approved' | 'scheduled' | 'published'
   scheduled_for?: string
   published_at?: string
-  tweet_url?: string
+  post_url?: string
+  published_platform?: string
 }
 
 interface ActivityItem {
@@ -79,7 +92,7 @@ const SAMPLE_VARIATIONS: AdVariation[] = [
 
 const SAMPLE_APPROVED: ApprovedCopy[] = [
   { id: 'sample-1', copy_text: 'Transform your customer experience with AI-powered support. 24/7 availability, instant responses, and personalized solutions that scale. Start your free trial today.', platform: 'Twitter', approach: 'benefit-driven', seo_keywords: ['AI customer service', 'chatbot solution'], character_count: 168, approved_at: new Date(Date.now() - 86400000).toISOString(), status: 'approved' },
-  { id: 'sample-2', copy_text: 'Join 5,000+ brands using AI to deliver exceptional customer service. Reduce costs by 60% while boosting satisfaction scores. Book a demo.', platform: 'LinkedIn', approach: 'social-proof', seo_keywords: ['AI brands', 'cost reduction'], character_count: 145, approved_at: new Date(Date.now() - 172800000).toISOString(), status: 'published', published_at: new Date(Date.now() - 100000000).toISOString(), tweet_url: 'https://twitter.com/example/status/123' },
+  { id: 'sample-2', copy_text: 'Join 5,000+ brands using AI to deliver exceptional customer service. Reduce costs by 60% while boosting satisfaction scores. Book a demo.', platform: 'Facebook', approach: 'social-proof', seo_keywords: ['AI brands', 'cost reduction'], character_count: 145, approved_at: new Date(Date.now() - 172800000).toISOString(), status: 'published', published_at: new Date(Date.now() - 100000000).toISOString(), post_url: 'https://facebook.com/example/posts/123', published_platform: 'Facebook' },
 ]
 
 const SAMPLE_ACTIVITIES: ActivityItem[] = [
@@ -648,6 +661,7 @@ function CreateAdCopyTab({ selectedTopic, approvedCopies, setApprovedCopies, act
                   <SelectItem value="Twitter">Twitter / X</SelectItem>
                   <SelectItem value="Facebook">Facebook</SelectItem>
                   <SelectItem value="Instagram">Instagram</SelectItem>
+                  <SelectItem value="TikTok">TikTok</SelectItem>
                   <SelectItem value="LinkedIn">LinkedIn</SelectItem>
                 </SelectContent>
               </Select>
@@ -783,6 +797,7 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
 }) {
   const [publishDialogOpen, setPublishDialogOpen] = useState(false)
   const [selectedCopy, setSelectedCopy] = useState<ApprovedCopy | null>(null)
+  const [selectedPublishPlatform, setSelectedPublishPlatform] = useState<string>('')
   const [publishing, setPublishing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
@@ -791,15 +806,23 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
 
   const filteredCopies = approvedCopies.filter(c => filter === 'all' || c.status === filter)
 
+  const publishablePlatforms = ['Twitter', 'Facebook', 'Instagram', 'TikTok']
+
   const handlePublish = async () => {
-    if (!selectedCopy) return
+    if (!selectedCopy || !selectedPublishPlatform) return
+    const platformConf = PLATFORM_CONFIG[selectedPublishPlatform]
+    if (!platformConf?.agentId) {
+      setError(`Publishing to ${selectedPublishPlatform} is not supported yet.`)
+      return
+    }
+
     setPublishing(true)
     setError(null)
-    setActiveAgentId(TWITTER_PUBLISHER_AGENT_ID)
+    setActiveAgentId(platformConf.agentId)
 
     try {
-      const message = `Post this content to Twitter: "${selectedCopy.copy_text}"`
-      const result = await callAIAgent(message, TWITTER_PUBLISHER_AGENT_ID)
+      const message = `Post this content to ${selectedPublishPlatform}: "${selectedCopy.copy_text}"`
+      const result = await callAIAgent(message, platformConf.agentId)
 
       if (result.success) {
         const rawResult = result?.response?.result
@@ -808,27 +831,26 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
           parsed = parseLLMJson(rawResult)
         }
 
-        const tweetUrl = parsed?.tweet_url ?? ''
-        const statusText = parsed?.status ?? 'success'
-        const responseMessage = parsed?.message ?? 'Successfully published to Twitter!'
+        const postUrl = parsed?.post_url ?? parsed?.tweet_url ?? ''
+        const responseMessage = parsed?.message ?? `Successfully published to ${selectedPublishPlatform}!`
         const publishedText = parsed?.published_text ?? selectedCopy.copy_text
-        const tweetId = parsed?.tweet_id ?? ''
+        const postId = parsed?.post_id ?? parsed?.tweet_id ?? ''
 
         setApprovedCopies(prev => prev.map(c =>
-          c.id === selectedCopy.id ? { ...c, status: 'published' as const, published_at: new Date().toISOString(), tweet_url: tweetUrl } : c
+          c.id === selectedCopy.id ? { ...c, status: 'published' as const, published_at: new Date().toISOString(), post_url: postUrl, published_platform: selectedPublishPlatform } : c
         ))
 
         const newActivity: ActivityItem = {
           id: Date.now().toString(),
           type: 'published',
-          description: `Published "${(publishedText ?? '').slice(0, 40)}..." to Twitter${tweetId ? ` (ID: ${tweetId})` : ''}`,
+          description: `Published "${(publishedText ?? '').slice(0, 40)}..." to ${selectedPublishPlatform}${postId ? ` (ID: ${postId})` : ''}`,
           timestamp: new Date().toISOString(),
         }
         setActivities(prev => [newActivity, ...prev])
         setSuccessMsg(responseMessage)
         setPublishDialogOpen(false)
       } else {
-        setError(result?.error ?? 'Failed to publish. Please try again.')
+        setError(result?.error ?? `Failed to publish to ${selectedPublishPlatform}. Please try again.`)
       }
     } catch {
       setError('Network error. Please try again.')
@@ -858,8 +880,9 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
     setApprovedCopies(prev => prev.filter(c => c.id !== id))
   }
 
-  const openPublishDialog = (copy: ApprovedCopy) => {
+  const openPublishDialog = (copy: ApprovedCopy, platform?: string) => {
     setSelectedCopy(copy)
+    setSelectedPublishPlatform(platform ?? copy.platform)
     setPublishDialogOpen(true)
   }
 
@@ -870,6 +893,11 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
       case 'published': return 'bg-green-100 text-green-700 border-green-200'
       default: return 'bg-muted text-muted-foreground'
     }
+  }
+
+  const getPlatformIcon = (platform: string) => {
+    const conf = PLATFORM_CONFIG[platform]
+    return conf?.icon ?? <FiSend className="w-3.5 h-3.5" />
   }
 
   return (
@@ -910,7 +938,10 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
                       {copy.status === 'published' ? <FiCheck className="w-3 h-3 mr-1" /> : copy.status === 'scheduled' ? <FiClock className="w-3 h-3 mr-1" /> : <FiStar className="w-3 h-3 mr-1" />}
                       {copy.status}
                     </Badge>
-                    <Badge variant="outline" className="text-xs font-normal rounded-full">{copy.platform}</Badge>
+                    <Badge variant="outline" className={`text-xs font-normal rounded-full border ${PLATFORM_CONFIG[copy.platform]?.color ?? ''}`}>
+                      {getPlatformIcon(copy.platform)}
+                      <span className="ml-1">{copy.platform}</span>
+                    </Badge>
                     <Badge variant="outline" className="text-xs font-normal rounded-full">{copy.approach}</Badge>
                     <span className="text-xs text-muted-foreground ml-auto flex-shrink-0">{timeAgo(copy.approved_at)}</span>
                   </div>
@@ -943,22 +974,30 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
                   )}
 
                   {/* Published info */}
-                  {copy.status === 'published' && copy.tweet_url && (
-                    <a href={copy.tweet_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mt-1 hover:underline">
-                      <FiExternalLink className="w-3 h-3" />View on Twitter
+                  {copy.status === 'published' && copy.post_url && (
+                    <a href={copy.post_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mt-1 hover:underline">
+                      <FiExternalLink className="w-3 h-3" />View on {copy.published_platform ?? copy.platform}
                     </a>
                   )}
                   {copy.status === 'published' && copy.published_at && (
-                    <p className="text-xs text-muted-foreground mt-1">Published: {new Date(copy.published_at).toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Published {copy.published_platform ? `to ${copy.published_platform}` : ''}: {new Date(copy.published_at).toLocaleString()}</p>
                   )}
                 </div>
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2 flex-shrink-0">
                   {copy.status !== 'published' && (
-                    <Button size="sm" onClick={() => openPublishDialog(copy)} className="rounded-[0.625rem] text-xs">
-                      <FiTwitter className="w-3.5 h-3.5 mr-1" />Publish
-                    </Button>
+                    <div className="flex flex-col gap-1.5">
+                      {publishablePlatforms.map(plat => {
+                        const conf = PLATFORM_CONFIG[plat]
+                        if (!conf?.agentId) return null
+                        return (
+                          <Button key={plat} size="sm" variant={plat === copy.platform ? 'default' : 'outline'} onClick={() => openPublishDialog(copy, plat)} className="rounded-[0.625rem] text-xs justify-start">
+                            {conf.icon}<span className="ml-1.5">{plat}</span>
+                          </Button>
+                        )
+                      })}
+                    </div>
                   )}
                   <Button size="sm" variant="ghost" onClick={() => handleDelete(copy.id)} className="rounded-[0.625rem] text-xs text-destructive hover:text-destructive">
                     <FiTrash2 className="w-3.5 h-3.5" />
@@ -974,16 +1013,34 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
       <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
         <DialogContent className="rounded-[0.875rem]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><FiTwitter className="w-5 h-5 text-primary" />Publish to Twitter</DialogTitle>
-            <DialogDescription>This will post the following content directly to Twitter. This action cannot be undone.</DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              {PLATFORM_CONFIG[selectedPublishPlatform]?.icon ?? <FiSend className="w-5 h-5" />}
+              <span>Publish to {selectedPublishPlatform}</span>
+            </DialogTitle>
+            <DialogDescription>This will post the following content directly to {selectedPublishPlatform}. This action cannot be undone.</DialogDescription>
           </DialogHeader>
+
+          {/* Platform Selector */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-medium text-muted-foreground">Publish to:</span>
+            {publishablePlatforms.map(plat => {
+              const conf = PLATFORM_CONFIG[plat]
+              if (!conf?.agentId) return null
+              return (
+                <Button key={plat} size="sm" variant={selectedPublishPlatform === plat ? 'default' : 'outline'} onClick={() => setSelectedPublishPlatform(plat)} className={`rounded-full text-xs ${selectedPublishPlatform === plat ? '' : conf.color}`}>
+                  {conf.icon}<span className="ml-1">{plat}</span>
+                </Button>
+              )
+            })}
+          </div>
+
           <div className="bg-muted/50 rounded-[0.625rem] p-4 my-2">
             <p className="text-sm text-foreground leading-[1.55]">{selectedCopy?.copy_text ?? ''}</p>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setPublishDialogOpen(false)} disabled={publishing} className="rounded-[0.625rem]">Cancel</Button>
-            <Button onClick={handlePublish} disabled={publishing} className="rounded-[0.875rem]">
-              {publishing ? <><FiRefreshCw className="w-4 h-4 mr-2 animate-spin" />Publishing...</> : <><FiSend className="w-4 h-4 mr-2" />Confirm Publish</>}
+            <Button onClick={handlePublish} disabled={publishing || !selectedPublishPlatform} className="rounded-[0.875rem]">
+              {publishing ? <><FiRefreshCw className="w-4 h-4 mr-2 animate-spin" />Publishing...</> : <><FiSend className="w-4 h-4 mr-2" />Publish to {selectedPublishPlatform}</>}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -995,24 +1052,30 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
 // ─── Agent Status Panel ─────────────────────────────────────────────────────
 function AgentStatusPanel({ activeAgentId }: { activeAgentId: string | null }) {
   const agents = [
-    { id: TOPIC_RESEARCH_AGENT_ID, name: 'Topic Research Agent', purpose: 'Discovers trending topics and content angles' },
-    { id: AD_COPY_AGENT_ID, name: 'Ad Copy Generator', purpose: 'Creates SEO-optimized ad copy variations' },
-    { id: TWITTER_PUBLISHER_AGENT_ID, name: 'Twitter Publisher', purpose: 'Publishes approved content to Twitter' },
+    { id: TOPIC_RESEARCH_AGENT_ID, name: 'Topic Research', purpose: 'Discovers trending topics', icon: <FiSearch className="w-3 h-3" /> },
+    { id: AD_COPY_AGENT_ID, name: 'Ad Copy Generator', purpose: 'Creates SEO-optimized copy', icon: <FiEdit2 className="w-3 h-3" /> },
+    { id: TWITTER_PUBLISHER_AGENT_ID, name: 'Twitter Publisher', purpose: 'Posts to Twitter / X', icon: <FiTwitter className="w-3 h-3" /> },
+    { id: FACEBOOK_PUBLISHER_AGENT_ID, name: 'Facebook Publisher', purpose: 'Posts to Facebook', icon: <FiFacebook className="w-3 h-3" /> },
+    { id: INSTAGRAM_PUBLISHER_AGENT_ID, name: 'Instagram Publisher', purpose: 'Posts to Instagram', icon: <FiInstagram className="w-3 h-3" /> },
+    { id: TIKTOK_PUBLISHER_AGENT_ID, name: 'TikTok Publisher', purpose: 'Posts to TikTok', icon: <FiVideo className="w-3 h-3" /> },
   ]
 
   return (
     <GlassCard className="p-4">
       <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">AI Agents</h4>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {agents.map(agent => {
           const isActive = activeAgentId === agent.id
           return (
-            <div key={agent.id} className={`flex items-center gap-3 p-2.5 rounded-[0.625rem] transition-colors ${isActive ? 'bg-primary/5 ring-1 ring-primary/20' : 'bg-transparent'}`}>
-              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isActive ? 'bg-primary animate-pulse' : 'bg-muted-foreground/30'}`} />
+            <div key={agent.id} className={`flex items-center gap-2.5 p-2.5 rounded-[0.625rem] transition-colors ${isActive ? 'bg-primary/5 ring-1 ring-primary/20' : 'bg-transparent'}`}>
+              <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                {agent.icon}
+              </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-foreground truncate">{agent.name}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{agent.purpose}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{isActive ? 'Processing...' : agent.purpose}</p>
               </div>
+              {isActive && <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0 ml-auto" />}
             </div>
           )
         })}

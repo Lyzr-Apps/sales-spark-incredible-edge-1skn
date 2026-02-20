@@ -23,6 +23,24 @@
       "type": "Agent",
       "label": "Twitter Publisher Agent",
       "nodeCategory": "agent"
+    },
+    {
+      "id": "facebook_publisher_agent",
+      "type": "Agent",
+      "label": "Facebook Publisher Agent",
+      "nodeCategory": "agent"
+    },
+    {
+      "id": "instagram_publisher_agent",
+      "type": "Agent",
+      "label": "Instagram Publisher Agent",
+      "nodeCategory": "agent"
+    },
+    {
+      "id": "tiktok_publisher_agent",
+      "type": "Agent",
+      "label": "TikTok Publisher Agent",
+      "nodeCategory": "agent"
     }
   ],
   "edges": [
@@ -37,6 +55,18 @@
     {
       "source": "ad_copy_agent",
       "target": "twitter_publisher_agent"
+    },
+    {
+      "source": "ad_copy_agent",
+      "target": "facebook_publisher_agent"
+    },
+    {
+      "source": "ad_copy_agent",
+      "target": "instagram_publisher_agent"
+    },
+    {
+      "source": "ad_copy_agent",
+      "target": "tiktok_publisher_agent"
     }
   ]
 }

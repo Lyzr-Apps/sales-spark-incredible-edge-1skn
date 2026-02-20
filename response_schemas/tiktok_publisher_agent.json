@@ -1,0 +1,26 @@
+{
+  "agent_name": "TikTok Publisher Agent",
+  "agent_id": "6998142c5c2b072508969246",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "schema": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "TikTokPublishResponse",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "message": { "type": "string" },
+          "post_id": { "type": "string" },
+          "post_url": { "type": "string" },
+          "published_text": { "type": "string" }
+        },
+        "required": ["status", "message", "post_id", "post_url", "published_text"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -18,6 +18,27 @@
       "provider": "openai",
       "model": "gpt-4.1",
       "tools": ["TWITTER_CREATION_OF_A_POST"]
+    },
+    "facebook_publisher_agent": {
+      "agent_id": "6998142a549d879ea245fe1b",
+      "name": "Facebook Publisher Agent",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "tools": ["FACEBOOK_CREATE_PAGE_POST"]
+    },
+    "instagram_publisher_agent": {
+      "agent_id": "6998142be759fc2f0f4fe552",
+      "name": "Instagram Publisher Agent",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "tools": ["INSTAGRAM_PUBLISH_MEDIA"]
+    },
+    "tiktok_publisher_agent": {
+      "agent_id": "6998142c5c2b072508969246",
+      "name": "TikTok Publisher Agent",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "tools": ["TIKTOK_CREATE_A_POST"]
     }
   }
 }

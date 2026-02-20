@@ -1,0 +1,22 @@
+{
+  "agent_name": "Facebook Publisher Agent",
+  "agent_id": "6998142a549d879ea245fe1b",
+  "description": "Posts approved ad copy directly to the user's Facebook page.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "status": "string",
+    "message": "string",
+    "post_id": "string",
+    "post_url": "string",
+    "published_text": "string"
+  },
+  "example_response": {
+    "status": "sample string",
+    "message": "sample string",
+    "post_id": "sample string",
+    "post_url": "sample string",
+    "published_text": "sample string"
+  }
+}
