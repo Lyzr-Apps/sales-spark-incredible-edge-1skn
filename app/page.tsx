@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { callAIAgent } from '@/lib/aiAgent'
 import parseLLMJson from '@/lib/jsonParser'
-import { FiSearch, FiCalendar, FiSend, FiEdit2, FiCheck, FiClock, FiTrendingUp, FiX, FiChevronLeft, FiChevronRight, FiBarChart2, FiTarget, FiStar, FiHash, FiAlertCircle, FiActivity, FiFileText, FiTwitter, FiRefreshCw, FiCopy, FiTrash2, FiExternalLink, FiPlus, FiAward, FiZap, FiFacebook, FiInstagram, FiVideo } from 'react-icons/fi'
+import { FiSearch, FiCalendar, FiSend, FiEdit2, FiCheck, FiClock, FiTrendingUp, FiX, FiChevronLeft, FiChevronRight, FiBarChart2, FiTarget, FiStar, FiHash, FiAlertCircle, FiActivity, FiFileText, FiTwitter, FiRefreshCw, FiCopy, FiTrash2, FiExternalLink, FiPlus, FiAward, FiZap, FiFacebook, FiInstagram, FiVideo, FiImage, FiDownload, FiLink } from 'react-icons/fi'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -24,6 +24,7 @@ const TWITTER_PUBLISHER_AGENT_ID = '699810c2d3087087d129a282'
 const FACEBOOK_PUBLISHER_AGENT_ID = '6998142a549d879ea245fe1b'
 const INSTAGRAM_PUBLISHER_AGENT_ID = '6998142be759fc2f0f4fe552'
 const TIKTOK_PUBLISHER_AGENT_ID = '6998142c5c2b072508969246'
+const VISUAL_CONTENT_AGENT_ID = '699816be3b428c945f96fce9'
 
 // ─── Platform Config ─────────────────────────────────────────────────────────
 const PLATFORM_CONFIG: Record<string, { agentId: string; icon: React.ReactNode; label: string; color: string }> = {
@@ -65,6 +66,21 @@ interface ApprovedCopy {
   published_at?: string
   post_url?: string
   published_platform?: string
+  media_url?: string
+  media_type?: 'image' | 'video'
+  video_url?: string
+}
+
+interface GeneratedVisual {
+  id: string
+  image_url: string
+  design_description: string
+  design_style: string
+  recommended_platforms: string[]
+  usage_suggestions: string
+  color_palette: string[]
+  prompt_used: string
+  created_at: string
 }
 
 interface ActivityItem {
@@ -821,7 +837,8 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
     setActiveAgentId(platformConf.agentId)
 
     try {
-      const message = `Post this content to ${selectedPublishPlatform}: "${selectedCopy.copy_text}"`
+      const mediaInfo = selectedCopy.media_url ? ` Include this media: ${selectedCopy.media_url}${selectedCopy.video_url ? ` and video: ${selectedCopy.video_url}` : ''}` : ''
+      const message = `Post this content to ${selectedPublishPlatform}: "${selectedCopy.copy_text}"${mediaInfo}`
       const result = await callAIAgent(message, platformConf.agentId)
 
       if (result.success) {
@@ -945,15 +962,30 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
                     <Badge variant="outline" className="text-xs font-normal rounded-full">{copy.approach}</Badge>
                     <span className="text-xs text-muted-foreground ml-auto flex-shrink-0">{timeAgo(copy.approved_at)}</span>
                   </div>
+                  {/* Media Preview */}
+                  {copy.media_url && (
+                    <div className="relative mb-3 rounded-[0.625rem] overflow-hidden bg-muted/30 inline-block">
+                      <img src={copy.media_url} alt="Attached media" className="h-24 w-auto rounded-[0.625rem] object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      <Badge className="absolute top-1.5 left-1.5 text-[10px] rounded-full bg-black/60 text-white border-0 backdrop-blur-sm">
+                        {copy.media_type === 'video' ? <><FiVideo className="w-2.5 h-2.5 mr-0.5" />Video</> : <><FiImage className="w-2.5 h-2.5 mr-0.5" />Poster</>}
+                      </Badge>
+                    </div>
+                  )}
+                  {copy.video_url && (
+                    <a href={copy.video_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mb-2 hover:underline">
+                      <FiLink className="w-3 h-3" />Video: {copy.video_url.length > 50 ? copy.video_url.slice(0, 50) + '...' : copy.video_url}
+                    </a>
+                  )}
+
                   <p className="text-sm text-foreground leading-[1.55] mb-3">{copy?.copy_text ?? ''}</p>
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {Array.isArray(copy?.seo_keywords) && copy.seo_keywords.map((kw, ki) => (
                       <Badge key={ki} variant="outline" className="text-xs font-normal py-0 px-2 rounded-full">{kw}</Badge>
                     ))}
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                    <FiHash className="w-3 h-3" />
-                    <span>{copy?.character_count ?? 0} characters</span>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                    <span className="flex items-center gap-1"><FiHash className="w-3 h-3" />{copy?.character_count ?? 0} chars</span>
+                    {copy.media_type && <span className="flex items-center gap-1">{copy.media_type === 'video' ? <FiVideo className="w-3 h-3" /> : <FiImage className="w-3 h-3" />}{copy.media_type === 'video' ? 'Video' : 'Poster'} attached</span>}
                   </div>
 
                   {/* Schedule Input for approved items */}
@@ -1035,12 +1067,367 @@ function SchedulePublishTab({ approvedCopies, setApprovedCopies, setActivities, 
           </div>
 
           <div className="bg-muted/50 rounded-[0.625rem] p-4 my-2">
+            {selectedCopy?.media_url && (
+              <div className="mb-3 rounded-[0.625rem] overflow-hidden">
+                <img src={selectedCopy.media_url} alt="Media" className="w-full h-auto max-h-[200px] object-contain rounded-[0.625rem]" />
+                {selectedCopy.media_type && (
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    {selectedCopy.media_type === 'video' ? <FiVideo className="w-3 h-3" /> : <FiImage className="w-3 h-3" />}
+                    {selectedCopy.media_type === 'video' ? 'Video with cover image' : 'Poster image'}
+                  </p>
+                )}
+              </div>
+            )}
             <p className="text-sm text-foreground leading-[1.55]">{selectedCopy?.copy_text ?? ''}</p>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setPublishDialogOpen(false)} disabled={publishing} className="rounded-[0.625rem]">Cancel</Button>
             <Button onClick={handlePublish} disabled={publishing || !selectedPublishPlatform} className="rounded-[0.875rem]">
               {publishing ? <><FiRefreshCw className="w-4 h-4 mr-2 animate-spin" />Publishing...</> : <><FiSend className="w-4 h-4 mr-2" />Publish to {selectedPublishPlatform}</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+// ─── Create Visuals Tab ─────────────────────────────────────────────────────
+function CreateVisualsTab({ approvedCopies, setApprovedCopies, activities, setActivities, selectedTopic, setActiveAgentId }: {
+  approvedCopies: ApprovedCopy[]
+  setApprovedCopies: React.Dispatch<React.SetStateAction<ApprovedCopy[]>>
+  activities: ActivityItem[]
+  setActivities: React.Dispatch<React.SetStateAction<ActivityItem[]>>
+  selectedTopic: TopicItem | null
+  setActiveAgentId: (id: string | null) => void
+}) {
+  const [prompt, setPrompt] = useState('')
+  const [style, setStyle] = useState('Modern & Clean')
+  const [targetPlatform, setTargetPlatform] = useState('Instagram')
+  const [brandColors, setBrandColors] = useState('')
+  const [adCopyText, setAdCopyText] = useState('')
+  const [generatedVisuals, setGeneratedVisuals] = useState<GeneratedVisual[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [videoUrl, setVideoUrl] = useState('')
+  const [videoAttachDialogOpen, setVideoAttachDialogOpen] = useState(false)
+  const [selectedVisualForVideo, setSelectedVisualForVideo] = useState<GeneratedVisual | null>(null)
+
+  useEffect(() => {
+    if (selectedTopic) {
+      setPrompt(prev => prev || `Create an ad poster for: ${selectedTopic.title}. ${selectedTopic.description}`)
+    }
+  }, [selectedTopic])
+
+  // Load saved visuals
+  useEffect(() => {
+    setGeneratedVisuals(loadFromStorage<GeneratedVisual[]>('adcopy_visuals', []))
+  }, [])
+
+  useEffect(() => {
+    saveToStorage('adcopy_visuals', generatedVisuals)
+  }, [generatedVisuals])
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) return
+    setLoading(true)
+    setError(null)
+    setActiveAgentId(VISUAL_CONTENT_AGENT_ID)
+
+    try {
+      const message = `Create a professional ad poster/graphic with the following brief:
+Topic/Description: ${prompt.trim()}
+Style: ${style}
+Target Platform: ${targetPlatform}
+${adCopyText ? `Ad Copy to include: ${adCopyText}` : ''}
+${brandColors ? `Brand Colors: ${brandColors}` : ''}
+Make it visually striking, modern, and ready for social media publishing on ${targetPlatform}.`
+
+      const result = await callAIAgent(message, VISUAL_CONTENT_AGENT_ID)
+
+      if (result.success) {
+        // Extract image from module_outputs (top level, not nested under response)
+        const artifactFiles = result?.module_outputs?.artifact_files
+        let imageUrl = ''
+        if (Array.isArray(artifactFiles) && artifactFiles.length > 0) {
+          imageUrl = artifactFiles[0]?.file_url ?? artifactFiles[0]?.url ?? ''
+        }
+
+        // Extract text response data
+        const rawResult = result?.response?.result
+        let parsed = rawResult
+        if (typeof rawResult === 'string') {
+          parsed = parseLLMJson(rawResult)
+        }
+
+        const visual: GeneratedVisual = {
+          id: Date.now().toString(),
+          image_url: imageUrl,
+          design_description: parsed?.design_description ?? '',
+          design_style: parsed?.design_style ?? style,
+          recommended_platforms: Array.isArray(parsed?.recommended_platforms) ? parsed.recommended_platforms : [targetPlatform],
+          usage_suggestions: parsed?.usage_suggestions ?? '',
+          color_palette: Array.isArray(parsed?.color_palette) ? parsed.color_palette : [],
+          prompt_used: prompt,
+          created_at: new Date().toISOString(),
+        }
+
+        setGeneratedVisuals(prev => [visual, ...prev])
+
+        const newActivity: ActivityItem = {
+          id: Date.now().toString(),
+          type: 'generated',
+          description: `Generated ad poster for ${targetPlatform}: "${prompt.slice(0, 40)}..."`,
+          timestamp: new Date().toISOString(),
+        }
+        setActivities(prev => [newActivity, ...prev])
+        setSuccessMsg('Visual content generated successfully!')
+      } else {
+        setError(result?.error ?? 'Failed to generate visual content. Please try again.')
+      }
+    } catch {
+      setError('Network error. Please check your connection and try again.')
+    } finally {
+      setLoading(false)
+      setActiveAgentId(null)
+    }
+  }
+
+  const handleAttachToContent = (visual: GeneratedVisual, mediaType: 'image' | 'video', vidUrl?: string) => {
+    const newCopy: ApprovedCopy = {
+      id: `visual-${visual.id}-${Date.now()}`,
+      copy_text: adCopyText || visual.design_description,
+      platform: visual.recommended_platforms[0] ?? targetPlatform,
+      approach: visual.design_style,
+      seo_keywords: [],
+      character_count: (adCopyText || visual.design_description).length,
+      approved_at: new Date().toISOString(),
+      status: 'approved',
+      media_url: visual.image_url,
+      media_type: mediaType,
+      video_url: mediaType === 'video' ? (vidUrl ?? '') : undefined,
+    }
+    setApprovedCopies(prev => [...prev, newCopy])
+
+    const newActivity: ActivityItem = {
+      id: Date.now().toString(),
+      type: 'approved',
+      description: `Approved ${mediaType} content for ${newCopy.platform}`,
+      timestamp: new Date().toISOString(),
+    }
+    setActivities(prev => [newActivity, ...prev])
+    setSuccessMsg(`${mediaType === 'video' ? 'Video' : 'Poster'} added to publish queue`)
+  }
+
+  const openVideoAttachDialog = (visual: GeneratedVisual) => {
+    setSelectedVisualForVideo(visual)
+    setVideoUrl('')
+    setVideoAttachDialogOpen(true)
+  }
+
+  const handleVideoAttach = () => {
+    if (selectedVisualForVideo && videoUrl.trim()) {
+      handleAttachToContent(selectedVisualForVideo, 'video', videoUrl.trim())
+      setVideoAttachDialogOpen(false)
+    }
+  }
+
+  const handleDeleteVisual = (id: string) => {
+    setGeneratedVisuals(prev => prev.filter(v => v.id !== id))
+  }
+
+  return (
+    <div className="space-y-6">
+      {successMsg && <InlineBanner type="success" message={successMsg} onDismiss={() => setSuccessMsg(null)} />}
+      {error && <InlineBanner type="error" message={error} onDismiss={() => setError(null)} />}
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Input Form */}
+        <GlassCard className="lg:col-span-2 p-6 self-start">
+          <h3 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+            <FiImage className="w-5 h-5 text-primary" />Visual Content Studio
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium mb-1.5 block">Description / Brief</Label>
+              <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Describe the poster or graphic you want to create..." rows={3} className="rounded-[0.625rem] resize-none" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1.5 block">Ad Copy Text (optional)</Label>
+              <Textarea value={adCopyText} onChange={(e) => setAdCopyText(e.target.value)} placeholder="Text to include on the poster (headline, CTA, etc.)" rows={2} className="rounded-[0.625rem] resize-none" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1.5 block">Design Style</Label>
+              <Select value={style} onValueChange={setStyle}>
+                <SelectTrigger className="rounded-[0.625rem]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Modern & Clean">Modern & Clean</SelectItem>
+                  <SelectItem value="Bold & Vibrant">Bold & Vibrant</SelectItem>
+                  <SelectItem value="Minimalist">Minimalist</SelectItem>
+                  <SelectItem value="Retro / Vintage">Retro / Vintage</SelectItem>
+                  <SelectItem value="Corporate / Professional">Corporate / Professional</SelectItem>
+                  <SelectItem value="Playful & Fun">Playful & Fun</SelectItem>
+                  <SelectItem value="Luxury / Premium">Luxury / Premium</SelectItem>
+                  <SelectItem value="Tech / Futuristic">Tech / Futuristic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1.5 block">Target Platform</Label>
+              <Select value={targetPlatform} onValueChange={setTargetPlatform}>
+                <SelectTrigger className="rounded-[0.625rem]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Instagram">Instagram (1080x1080)</SelectItem>
+                  <SelectItem value="Facebook">Facebook (1200x628)</SelectItem>
+                  <SelectItem value="Twitter">Twitter (1600x900)</SelectItem>
+                  <SelectItem value="TikTok">TikTok (1080x1920)</SelectItem>
+                  <SelectItem value="LinkedIn">LinkedIn (1200x627)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1.5 block">Brand Colors (optional)</Label>
+              <Input value={brandColors} onChange={(e) => setBrandColors(e.target.value)} placeholder="e.g., #FF6B35, #004E64, white" className="rounded-[0.625rem]" />
+            </div>
+            <Button onClick={handleGenerate} disabled={loading || !prompt.trim()} className="w-full rounded-[0.875rem]">
+              {loading ? <><FiRefreshCw className="w-4 h-4 mr-2 animate-spin" />Generating Poster...</> : <><FiImage className="w-4 h-4 mr-2" />Generate Poster</>}
+            </Button>
+          </div>
+        </GlassCard>
+
+        {/* Generated Visuals */}
+        <div className="lg:col-span-3 space-y-4">
+          {loading && (
+            <GlassCard className="p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <Skeleton className="h-5 w-32 rounded-full" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </div>
+              <Skeleton className="w-full h-[300px] rounded-[0.625rem] mb-4" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-3/4" />
+            </GlassCard>
+          )}
+
+          {generatedVisuals.length > 0 && (
+            <div className="space-y-4">
+              {generatedVisuals.map(visual => (
+                <GlassCard key={visual.id} className="p-5">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <Badge variant="secondary" className="text-xs font-medium rounded-full">{visual.design_style}</Badge>
+                    {Array.isArray(visual.recommended_platforms) && visual.recommended_platforms.map((p, i) => (
+                      <Badge key={i} variant="outline" className={`text-xs font-normal rounded-full ${PLATFORM_CONFIG[p]?.color ?? ''}`}>
+                        {p}
+                      </Badge>
+                    ))}
+                    <span className="text-xs text-muted-foreground ml-auto">{timeAgo(visual.created_at)}</span>
+                  </div>
+
+                  {/* Image Preview */}
+                  {visual.image_url ? (
+                    <div className="relative group mb-4 rounded-[0.625rem] overflow-hidden bg-muted/30">
+                      <img
+                        src={visual.image_url}
+                        alt={visual.design_description}
+                        className="w-full h-auto max-h-[400px] object-contain rounded-[0.625rem]"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-[0.625rem]" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-[200px] bg-muted/30 rounded-[0.625rem] flex items-center justify-center mb-4">
+                      <div className="text-center">
+                        <FiImage className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-xs text-muted-foreground">Image generating or unavailable</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Design Info */}
+                  <p className="text-sm text-foreground leading-[1.55] mb-2">{visual.design_description}</p>
+                  {visual.usage_suggestions && (
+                    <p className="text-xs text-muted-foreground leading-[1.55] mb-3 italic">{visual.usage_suggestions}</p>
+                  )}
+
+                  {/* Color Palette */}
+                  {Array.isArray(visual.color_palette) && visual.color_palette.length > 0 && (
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-xs text-muted-foreground">Colors:</span>
+                      <div className="flex gap-1">
+                        {visual.color_palette.map((color, ci) => (
+                          <div key={ci} className="flex items-center gap-1">
+                            <div className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: color.startsWith('#') ? color : undefined }} />
+                            <span className="text-xs text-muted-foreground">{color}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button size="sm" onClick={() => handleAttachToContent(visual, 'image')} className="rounded-[0.625rem]">
+                      <FiCheck className="w-3.5 h-3.5 mr-1" />Approve as Poster
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => openVideoAttachDialog(visual)} className="rounded-[0.625rem]">
+                      <FiVideo className="w-3.5 h-3.5 mr-1" />Attach Video
+                    </Button>
+                    {visual.image_url && (
+                      <a href={visual.image_url} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="outline" className="rounded-[0.625rem]">
+                          <FiDownload className="w-3.5 h-3.5 mr-1" />Download
+                        </Button>
+                      </a>
+                    )}
+                    <Button size="sm" variant="ghost" onClick={() => handleDeleteVisual(visual.id)} className="rounded-[0.625rem] text-destructive hover:text-destructive ml-auto">
+                      <FiTrash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </GlassCard>
+              ))}
+            </div>
+          )}
+
+          {!loading && generatedVisuals.length === 0 && (
+            <GlassCard className="p-12 text-center">
+              <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <FiImage className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <h3 className="text-base font-semibold text-foreground mb-2">No visuals yet</h3>
+              <p className="text-muted-foreground text-sm">Describe your poster or ad graphic and let AI generate it for you</p>
+            </GlassCard>
+          )}
+        </div>
+      </div>
+
+      {/* Video URL Attach Dialog */}
+      <Dialog open={videoAttachDialogOpen} onOpenChange={setVideoAttachDialogOpen}>
+        <DialogContent className="rounded-[0.875rem]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FiVideo className="w-5 h-5 text-primary" />Attach Video URL
+            </DialogTitle>
+            <DialogDescription>
+              Provide a URL to your video file. The generated poster will be used as the thumbnail/cover image.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 my-2">
+            <div>
+              <Label className="text-sm font-medium mb-1.5 block">Video URL</Label>
+              <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://example.com/video.mp4 or YouTube/Vimeo link" className="rounded-[0.625rem]" />
+            </div>
+            {selectedVisualForVideo?.image_url && (
+              <div className="rounded-[0.625rem] overflow-hidden bg-muted/30">
+                <img src={selectedVisualForVideo.image_url} alt="Cover image" className="w-full h-32 object-cover" />
+                <p className="text-xs text-muted-foreground p-2">This poster will be used as the video cover/thumbnail</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setVideoAttachDialogOpen(false)} className="rounded-[0.625rem]">Cancel</Button>
+            <Button onClick={handleVideoAttach} disabled={!videoUrl.trim()} className="rounded-[0.875rem]">
+              <FiVideo className="w-4 h-4 mr-2" />Add Video to Queue
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1058,12 +1445,13 @@ function AgentStatusPanel({ activeAgentId }: { activeAgentId: string | null }) {
     { id: FACEBOOK_PUBLISHER_AGENT_ID, name: 'Facebook Publisher', purpose: 'Posts to Facebook', icon: <FiFacebook className="w-3 h-3" /> },
     { id: INSTAGRAM_PUBLISHER_AGENT_ID, name: 'Instagram Publisher', purpose: 'Posts to Instagram', icon: <FiInstagram className="w-3 h-3" /> },
     { id: TIKTOK_PUBLISHER_AGENT_ID, name: 'TikTok Publisher', purpose: 'Posts to TikTok', icon: <FiVideo className="w-3 h-3" /> },
+    { id: VISUAL_CONTENT_AGENT_ID, name: 'Visual Creator', purpose: 'Generates posters & graphics', icon: <FiImage className="w-3 h-3" /> },
   ]
 
   return (
     <GlassCard className="p-4">
       <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">AI Agents</h4>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {agents.map(agent => {
           const isActive = activeAgentId === agent.id
           return (
@@ -1131,6 +1519,7 @@ export default function Page() {
     { id: 'dashboard', label: 'Dashboard', icon: <FiBarChart2 className="w-4 h-4" /> },
     { id: 'research', label: 'Topic Research', icon: <FiSearch className="w-4 h-4" /> },
     { id: 'create', label: 'Create Ad Copy', icon: <FiEdit2 className="w-4 h-4" /> },
+    { id: 'visuals', label: 'Create Visuals', icon: <FiImage className="w-4 h-4" /> },
     { id: 'publish', label: 'Schedule & Publish', icon: <FiSend className="w-4 h-4" /> },
   ]
 
@@ -1200,6 +1589,16 @@ export default function Page() {
               activities={activities}
               setActivities={setActivities}
               sampleMode={sampleMode}
+              setActiveAgentId={setActiveAgentId}
+            />
+          )}
+          {activeTab === 'visuals' && (
+            <CreateVisualsTab
+              approvedCopies={approvedCopies}
+              setApprovedCopies={setApprovedCopies}
+              activities={activities}
+              setActivities={setActivities}
+              selectedTopic={selectedTopic}
               setActiveAgentId={setActiveAgentId}
             />
           )}

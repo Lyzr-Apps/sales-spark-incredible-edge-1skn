@@ -1,72 +1,25 @@
 {
   "nodes": [
-    {
-      "id": "input_node",
-      "type": "Input",
-      "label": "User Input",
-      "nodeCategory": "input"
-    },
-    {
-      "id": "topic_research_agent",
-      "type": "Agent",
-      "label": "Topic Research Agent",
-      "nodeCategory": "agent"
-    },
-    {
-      "id": "ad_copy_agent",
-      "type": "Agent",
-      "label": "Ad Copy Generator Agent",
-      "nodeCategory": "agent"
-    },
-    {
-      "id": "twitter_publisher_agent",
-      "type": "Agent",
-      "label": "Twitter Publisher Agent",
-      "nodeCategory": "agent"
-    },
-    {
-      "id": "facebook_publisher_agent",
-      "type": "Agent",
-      "label": "Facebook Publisher Agent",
-      "nodeCategory": "agent"
-    },
-    {
-      "id": "instagram_publisher_agent",
-      "type": "Agent",
-      "label": "Instagram Publisher Agent",
-      "nodeCategory": "agent"
-    },
-    {
-      "id": "tiktok_publisher_agent",
-      "type": "Agent",
-      "label": "TikTok Publisher Agent",
-      "nodeCategory": "agent"
-    }
+    {"id": "input_node", "type": "Input", "label": "User Input", "nodeCategory": "input"},
+    {"id": "topic_research_agent", "type": "Agent", "label": "Topic Research Agent", "nodeCategory": "agent"},
+    {"id": "ad_copy_agent", "type": "Agent", "label": "Ad Copy Generator Agent", "nodeCategory": "agent"},
+    {"id": "visual_content_agent", "type": "Agent", "label": "Visual Content Generator", "nodeCategory": "agent"},
+    {"id": "twitter_publisher_agent", "type": "Agent", "label": "Twitter Publisher Agent", "nodeCategory": "agent"},
+    {"id": "facebook_publisher_agent", "type": "Agent", "label": "Facebook Publisher Agent", "nodeCategory": "agent"},
+    {"id": "instagram_publisher_agent", "type": "Agent", "label": "Instagram Publisher Agent", "nodeCategory": "agent"},
+    {"id": "tiktok_publisher_agent", "type": "Agent", "label": "TikTok Publisher Agent", "nodeCategory": "agent"}
   ],
   "edges": [
-    {
-      "source": "input_node",
-      "target": "topic_research_agent"
-    },
-    {
-      "source": "topic_research_agent",
-      "target": "ad_copy_agent"
-    },
-    {
-      "source": "ad_copy_agent",
-      "target": "twitter_publisher_agent"
-    },
-    {
-      "source": "ad_copy_agent",
-      "target": "facebook_publisher_agent"
-    },
-    {
-      "source": "ad_copy_agent",
-      "target": "instagram_publisher_agent"
-    },
-    {
-      "source": "ad_copy_agent",
-      "target": "tiktok_publisher_agent"
-    }
+    {"source": "input_node", "target": "topic_research_agent"},
+    {"source": "topic_research_agent", "target": "ad_copy_agent"},
+    {"source": "topic_research_agent", "target": "visual_content_agent"},
+    {"source": "ad_copy_agent", "target": "twitter_publisher_agent"},
+    {"source": "ad_copy_agent", "target": "facebook_publisher_agent"},
+    {"source": "ad_copy_agent", "target": "instagram_publisher_agent"},
+    {"source": "ad_copy_agent", "target": "tiktok_publisher_agent"},
+    {"source": "visual_content_agent", "target": "twitter_publisher_agent"},
+    {"source": "visual_content_agent", "target": "facebook_publisher_agent"},
+    {"source": "visual_content_agent", "target": "instagram_publisher_agent"},
+    {"source": "visual_content_agent", "target": "tiktok_publisher_agent"}
   ]
 }

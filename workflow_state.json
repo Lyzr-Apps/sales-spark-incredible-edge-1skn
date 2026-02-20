@@ -39,6 +39,13 @@
       "provider": "openai",
       "model": "gpt-4.1",
       "tools": ["TIKTOK_CREATE_A_POST"]
+    },
+    "visual_content_agent": {
+      "agent_id": "699816be3b428c945f96fce9",
+      "name": "Visual Content Generator",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "image_output": true
     }
   }
 }

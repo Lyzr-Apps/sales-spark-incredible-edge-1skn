@@ -1,0 +1,38 @@
+{
+  "agent_name": "Visual Content Generator",
+  "agent_id": "699816be3b428c945f96fce9",
+  "description": "Generates professional ad posters, social media graphics, and visual content using DALL-E 3 based on campaign briefs, topics, and ad copy.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "design_description": "string",
+    "design_style": "string",
+    "recommended_platforms": [
+      "string"
+    ],
+    "usage_suggestions": "string",
+    "color_palette": [
+      "string"
+    ]
+  },
+  "example_response": {
+    "design_description": "sample string",
+    "design_style": "sample string",
+    "recommended_platforms": [
+      "sample string"
+    ],
+    "usage_suggestions": "sample string",
+    "color_palette": [
+      "sample string"
+    ]
+  },
+  "has_module_outputs": true,
+  "module_outputs_example": {
+    "artifact_files": [
+      {
+        "file_url": "https://example.com/image.png"
+      }
+    ]
+  }
+}

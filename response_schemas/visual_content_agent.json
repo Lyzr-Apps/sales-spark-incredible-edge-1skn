@@ -1,0 +1,39 @@
+{
+  "agent_name": "Visual Content Generator",
+  "agent_id": "699816be3b428c945f96fce9",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": true,
+  "module_outputs_example": {
+    "artifact_files": [
+      {
+        "file_url": "https://example.com/image.png"
+      }
+    ]
+  },
+  "schema": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "VisualContentResponse",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "design_description": {"type": "string"},
+          "design_style": {"type": "string"},
+          "recommended_platforms": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "usage_suggestions": {"type": "string"},
+          "color_palette": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        },
+        "required": ["design_description", "design_style", "recommended_platforms", "usage_suggestions", "color_palette"],
+        "additionalProperties": false
+      }
+    }
+  }
+}
